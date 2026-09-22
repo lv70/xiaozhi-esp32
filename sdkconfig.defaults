@@ -87,3 +87,9 @@ CONFIG_USE_EMOTE_MESSAGE_STYLE=y
 CONFIG_MMAP_FILE_NAME_LENGTH=32
 # expression/emote assets (esp_emote_assets component, 360x360 .eaf)
 CONFIG_FLASH_EXPRESSION_ASSETS=y
+
+# Sammy: keep the wake word local. Upstream default (y) sends the buffered wake-word audio plus a
+# {"type":"listen","state":"detect","text":"你好喵伴"} frame; xiaozhi-server then forwards that
+# Chinese text to Hermes as the first utterance, which replies in Chinese. With this off the device
+# just plays the popup cue and starts listening.
+CONFIG_SEND_WAKE_WORD_DATA=n
