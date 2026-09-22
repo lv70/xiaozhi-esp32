@@ -76,3 +76,14 @@ CONFIG_LV_USE_WIN=n
 
 CONFIG_LV_BUILD_EXAMPLES=n
 CONFIG_LV_BUILD_DEMOS=n
+
+# Sammy: firmware display language = English (see ../../docs/First EN build.md)
+CONFIG_LANGUAGE_EN_US=y
+
+# Sammy: ESP-VoCat (EchoEar) board — round ST77916 display, dual mic
+CONFIG_BOARD_TYPE_ESP_VOCAT=y
+# Emote animation UI (board default; mirrors main/boards/espressif/esp-vocat/config.json)
+CONFIG_USE_EMOTE_MESSAGE_STYLE=y
+CONFIG_MMAP_FILE_NAME_LENGTH=32
+# expression/emote assets (esp_emote_assets component, 360x360 .eaf)
+CONFIG_FLASH_EXPRESSION_ASSETS=y
