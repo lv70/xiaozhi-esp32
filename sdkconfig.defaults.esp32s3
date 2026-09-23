@@ -19,7 +19,11 @@ CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
 CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB=y
 CONFIG_ESP32S3_DATA_CACHE_LINE_64B=y
 
-CONFIG_SR_WN_WN9_NIHAOXIAOZHI_TTS=y
+# Sammy: wake words for ESP-VoCat. Both are packed into the assets image by the ESP-VoCat block
+# in main/CMakeLists.txt and the AFE listens for both. "Hi ESP" (English) plus the original 你好喵伴.
+# Upstream's default here was CONFIG_SR_WN_WN9_NIHAOXIAOZHI_TTS=y.
+CONFIG_SR_WN_WN9_HIESP=y
+CONFIG_SR_WN_WN9_NIHAOMIAOBAN_TTS2=y
 
 # Keep the camera DMA bounce buffer out of internal SRAM so AFE/WakeNet10
 # still has a usable internal heap after boot.

@@ -29,6 +29,17 @@ The server URL is a runtime NVS setting and must stay that way. The `# Sammy:` b
   `CONFIG_MMAP_FILE_NAME_LENGTH=32`, `CONFIG_FLASH_EXPRESSION_ASSETS`. The last three mirror
   the board's own `config.json` `sdkconfig_append` so a plain `idf.py build` picks them up
   without `scripts/build.py`.
+- `sdkconfig.defaults` — `CONFIG_SEND_WAKE_WORD_DATA=n`: the wake word stays on the device (the server
+  used to receive it as text and Hermes answered a Chinese greeting).
+- `sdkconfig.defaults.esp32s3` — wake words `CONFIG_SR_WN_WN9_HIESP=y` ("Hi ESP") and
+  `CONFIG_SR_WN_WN9_NIHAOMIAOBAN_TTS2=y` (你好喵伴) instead of upstream's `NIHAOXIAOZHI`.
+- `main/CMakeLists.txt` (ESP-VoCat block) — packs the `CONFIG_SR_WN_*` models selected in sdkconfig into
+  the assets image via esp-sr's `movemodel.py`, overriding the component's fixed `wakenet/srmodels.bin`
+  (which only ever contained 你好喵伴). Size-guarded, falls back to the bundled file. Candidate upstream PR.
+  NB: an existing `sdkconfig` keeps old `CONFIG_SR_WN_*` values — after changing the selection run
+  `idf.py fullclean` (or fix the values in `sdkconfig`) or you will pack three models and the AFE only
+  honours two.
+- `main/boards/espressif/esp-vocat/assets/360_360/emote.json` — `robot_2` mapping (upstream PR #2273).
 - `SAMMY.md` — this file.
 
 ## Planned work on this branch (see the SAMMY-firmware README and wiki)

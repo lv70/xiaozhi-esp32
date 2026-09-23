@@ -1200,6 +1200,46 @@ if(CONFIG_BOARD_TYPE_ESP_VOCAT)
              DESTINATION "${ESP_VOCAT_ASSETS_STAGING}/emoji_large")
         file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/boards/espressif/esp-vocat/emoji/battery_connected.eaf"
              DESTINATION "${ESP_VOCAT_ASSETS_STAGING}/emoji_large")
+        # Pack the wake-word models selected in sdkconfig (CONFIG_SR_WN_*) into the assets image.
+        # The esp_emote_assets component ships a fixed wakenet/srmodels.bin (你好喵伴 only), and
+        # build_all.py looks for wakenet/srmodels.bin in this staging dir before falling back to
+        # the component, so a freshly packed file here makes CONFIG_SR_WN_* meaningful on this
+        # board. movemodel.py is esp-sr's own tool: it copies every selected model into
+        # <build>/srmodels/ and packs <build>/srmodels/srmodels.bin. Up to two WakeNet models are
+        # honoured by AfeAudioEngine (wakenet_model_name / wakenet_model_name_2).
+        if(ESP_SR_COMPONENT_PATH AND SDKCONFIG)
+            set(ESP_VOCAT_SRMODELS_BUILD "${CMAKE_BINARY_DIR}/esp-vocat-srmodels")
+            execute_process(
+                COMMAND python "${ESP_SR_MODEL_PATH}/movemodel.py"
+                        -d1 "${SDKCONFIG}" -d2 "${ESP_SR_COMPONENT_PATH}" -d3 "${ESP_VOCAT_SRMODELS_BUILD}"
+                RESULT_VARIABLE _vocat_srmodels_rc
+                OUTPUT_VARIABLE _vocat_srmodels_out
+                ERROR_VARIABLE _vocat_srmodels_err
+            )
+            set(_vocat_srmodels_bin "${ESP_VOCAT_SRMODELS_BUILD}/srmodels/srmodels.bin")
+            set(_vocat_srmodels_size 0)
+            if(EXISTS "${_vocat_srmodels_bin}")
+                file(SIZE "${_vocat_srmodels_bin}" _vocat_srmodels_size)
+            endif()
+            # A WakeNet9 model is ~290 KB; anything smaller means nothing useful was selected.
+            if(_vocat_srmodels_rc EQUAL 0 AND _vocat_srmodels_size GREATER 100000)
+                file(MAKE_DIRECTORY "${ESP_VOCAT_ASSETS_STAGING}/wakenet")
+                file(COPY "${_vocat_srmodels_bin}" DESTINATION "${ESP_VOCAT_ASSETS_STAGING}/wakenet")
+                file(GLOB _vocat_srmodels_dirs LIST_DIRECTORIES true "${ESP_VOCAT_SRMODELS_BUILD}/srmodels/*")
+                set(_vocat_srmodels_names "")
+                foreach(_d IN LISTS _vocat_srmodels_dirs)
+                    if(IS_DIRECTORY "${_d}")
+                        get_filename_component(_n "${_d}" NAME)
+                        list(APPEND _vocat_srmodels_names "${_n}")
+                    endif()
+                endforeach()
+                message(STATUS "ESP-VoCat: wake-word models from sdkconfig packed into assets: ${_vocat_srmodels_names}")
+            else()
+                message(WARNING "ESP-VoCat: no wake-word models selected or movemodel.py failed "
+                                "(rc=${_vocat_srmodels_rc}, size=${_vocat_srmodels_size}); "
+                                "using the component's bundled srmodels.bin (你好喵伴).\n${_vocat_srmodels_err}")
+            endif()
+        endif()
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
             "${CMAKE_CURRENT_SOURCE_DIR}/boards/espressif/esp-vocat/assets/360_360/emote.json"
             "${CMAKE_CURRENT_SOURCE_DIR}/boards/espressif/esp-vocat/emoji/low_battery.eaf"
